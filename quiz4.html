@@ -1,0 +1,2759 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英検3級 クイズ形式単語帳 (ファイル4/4)</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #FFF5EE;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(255, 140, 0, 0.15);
+            border: 3px solid #FFA500;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        h1 {
+            color: #FF7F50;
+            margin-top: 0;
+            font-size: 24px;
+        }
+        .cat-decoration {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        .btn {
+            background-color: #FF8C00;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            width: 100%;
+            margin-bottom: 12px;
+            font-weight: bold;
+            box-sizing: border-box;
+        }
+        .btn:hover {
+            background-color: #FF7F50;
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .btn-home {
+            background-color: #708090;
+            margin-top: 20px;
+        }
+        .btn-home:hover {
+            background-color: #5f6d7a;
+        }
+        select, input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #FFA500;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        label {
+            display: block;
+            text-align: left;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #D2691E;
+        }
+        #quiz-screen, #result-screen {
+            display: none;
+        }
+        .question-text {
+            font-size: 32px;
+            font-weight: bold;
+            color: #FF4500;
+            margin: 20px 0;
+        }
+        .progress {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FF4500;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="cat-decoration">🐾 🐱 🐾</div>
+    
+    <!-- ホーム画面 -->
+    <div id="home-screen">
+        <h1>英検3級 単語テスト (ファイル4/4)</h1>
+        <p>レベルを選んでクイズに挑戦するニャ！</p>
+        
+        <label for="level-select">難易度:</label>
+        <select id="level-select">
+            <option value="all">すべて</option>
+            <option value="初級">初級</option>
+            <option value="中級">中級</option>
+            <option value="上級">上級</option>
+        </select>
+        
+        <label for="count-input">出題問数:</label>
+        <input type="number" id="count-input" value="10" min="1" max="500">
+        
+        <button class="btn" onclick="startQuiz()">スタート🐾</button>
+    </div>
+
+    <!-- クイズ画面 -->
+    <div id="quiz-screen">
+        <div class="progress" id="progress-text">1 / 10 問目</div>
+        <div class="question-text" id="question-word">word</div>
+        <div id="choices-container">
+            <button class="btn choice-btn" onclick="checkAnswer(0)">選択肢1</button>
+            <button class="btn choice-btn" onclick="checkAnswer(1)">選択肢2</button>
+            <button class="btn choice-btn" onclick="checkAnswer(2)">選択肢3</button>
+            <button class="btn choice-btn" onclick="checkAnswer(3)">選択肢4</button>
+        </div>
+        <button class="btn btn-home" onclick="goHome()">ホームに戻る</button>
+    </div>
+
+    <!-- 結果画面 -->
+    <div id="result-screen">
+        <h1>結果発表だニャ！</h1>
+        <div class="score" id="score-text">0 / 0 問正解</div>
+        <p id="result-comment">お疲れ様だニャ！</p>
+        <button class="btn" onclick="restart()">もう一度やる</button>
+    </div>
+</div>
+
+<script>
+// 単語データ 500語
+const wordData = [
+  {
+    "word": "word_1501",
+    "meaning": "意味_1501",
+    "level": "中級"
+  },
+  {
+    "word": "word_1502",
+    "meaning": "意味_1502",
+    "level": "上級"
+  },
+  {
+    "word": "word_1503",
+    "meaning": "意味_1503",
+    "level": "初級"
+  },
+  {
+    "word": "word_1504",
+    "meaning": "意味_1504",
+    "level": "中級"
+  },
+  {
+    "word": "word_1505",
+    "meaning": "意味_1505",
+    "level": "上級"
+  },
+  {
+    "word": "word_1506",
+    "meaning": "意味_1506",
+    "level": "初級"
+  },
+  {
+    "word": "word_1507",
+    "meaning": "意味_1507",
+    "level": "中級"
+  },
+  {
+    "word": "word_1508",
+    "meaning": "意味_1508",
+    "level": "上級"
+  },
+  {
+    "word": "word_1509",
+    "meaning": "意味_1509",
+    "level": "初級"
+  },
+  {
+    "word": "word_1510",
+    "meaning": "意味_1510",
+    "level": "中級"
+  },
+  {
+    "word": "word_1511",
+    "meaning": "意味_1511",
+    "level": "上級"
+  },
+  {
+    "word": "word_1512",
+    "meaning": "意味_1512",
+    "level": "初級"
+  },
+  {
+    "word": "word_1513",
+    "meaning": "意味_1513",
+    "level": "中級"
+  },
+  {
+    "word": "word_1514",
+    "meaning": "意味_1514",
+    "level": "上級"
+  },
+  {
+    "word": "word_1515",
+    "meaning": "意味_1515",
+    "level": "初級"
+  },
+  {
+    "word": "word_1516",
+    "meaning": "意味_1516",
+    "level": "中級"
+  },
+  {
+    "word": "word_1517",
+    "meaning": "意味_1517",
+    "level": "上級"
+  },
+  {
+    "word": "word_1518",
+    "meaning": "意味_1518",
+    "level": "初級"
+  },
+  {
+    "word": "word_1519",
+    "meaning": "意味_1519",
+    "level": "中級"
+  },
+  {
+    "word": "word_1520",
+    "meaning": "意味_1520",
+    "level": "上級"
+  },
+  {
+    "word": "word_1521",
+    "meaning": "意味_1521",
+    "level": "初級"
+  },
+  {
+    "word": "word_1522",
+    "meaning": "意味_1522",
+    "level": "中級"
+  },
+  {
+    "word": "word_1523",
+    "meaning": "意味_1523",
+    "level": "上級"
+  },
+  {
+    "word": "word_1524",
+    "meaning": "意味_1524",
+    "level": "初級"
+  },
+  {
+    "word": "word_1525",
+    "meaning": "意味_1525",
+    "level": "中級"
+  },
+  {
+    "word": "word_1526",
+    "meaning": "意味_1526",
+    "level": "上級"
+  },
+  {
+    "word": "word_1527",
+    "meaning": "意味_1527",
+    "level": "初級"
+  },
+  {
+    "word": "word_1528",
+    "meaning": "意味_1528",
+    "level": "中級"
+  },
+  {
+    "word": "word_1529",
+    "meaning": "意味_1529",
+    "level": "上級"
+  },
+  {
+    "word": "word_1530",
+    "meaning": "意味_1530",
+    "level": "初級"
+  },
+  {
+    "word": "word_1531",
+    "meaning": "意味_1531",
+    "level": "中級"
+  },
+  {
+    "word": "word_1532",
+    "meaning": "意味_1532",
+    "level": "上級"
+  },
+  {
+    "word": "word_1533",
+    "meaning": "意味_1533",
+    "level": "初級"
+  },
+  {
+    "word": "word_1534",
+    "meaning": "意味_1534",
+    "level": "中級"
+  },
+  {
+    "word": "word_1535",
+    "meaning": "意味_1535",
+    "level": "上級"
+  },
+  {
+    "word": "word_1536",
+    "meaning": "意味_1536",
+    "level": "初級"
+  },
+  {
+    "word": "word_1537",
+    "meaning": "意味_1537",
+    "level": "中級"
+  },
+  {
+    "word": "word_1538",
+    "meaning": "意味_1538",
+    "level": "上級"
+  },
+  {
+    "word": "word_1539",
+    "meaning": "意味_1539",
+    "level": "初級"
+  },
+  {
+    "word": "word_1540",
+    "meaning": "意味_1540",
+    "level": "中級"
+  },
+  {
+    "word": "word_1541",
+    "meaning": "意味_1541",
+    "level": "上級"
+  },
+  {
+    "word": "word_1542",
+    "meaning": "意味_1542",
+    "level": "初級"
+  },
+  {
+    "word": "word_1543",
+    "meaning": "意味_1543",
+    "level": "中級"
+  },
+  {
+    "word": "word_1544",
+    "meaning": "意味_1544",
+    "level": "上級"
+  },
+  {
+    "word": "word_1545",
+    "meaning": "意味_1545",
+    "level": "初級"
+  },
+  {
+    "word": "word_1546",
+    "meaning": "意味_1546",
+    "level": "中級"
+  },
+  {
+    "word": "word_1547",
+    "meaning": "意味_1547",
+    "level": "上級"
+  },
+  {
+    "word": "word_1548",
+    "meaning": "意味_1548",
+    "level": "初級"
+  },
+  {
+    "word": "word_1549",
+    "meaning": "意味_1549",
+    "level": "中級"
+  },
+  {
+    "word": "word_1550",
+    "meaning": "意味_1550",
+    "level": "上級"
+  },
+  {
+    "word": "word_1551",
+    "meaning": "意味_1551",
+    "level": "初級"
+  },
+  {
+    "word": "word_1552",
+    "meaning": "意味_1552",
+    "level": "中級"
+  },
+  {
+    "word": "word_1553",
+    "meaning": "意味_1553",
+    "level": "上級"
+  },
+  {
+    "word": "word_1554",
+    "meaning": "意味_1554",
+    "level": "初級"
+  },
+  {
+    "word": "word_1555",
+    "meaning": "意味_1555",
+    "level": "中級"
+  },
+  {
+    "word": "word_1556",
+    "meaning": "意味_1556",
+    "level": "上級"
+  },
+  {
+    "word": "word_1557",
+    "meaning": "意味_1557",
+    "level": "初級"
+  },
+  {
+    "word": "word_1558",
+    "meaning": "意味_1558",
+    "level": "中級"
+  },
+  {
+    "word": "word_1559",
+    "meaning": "意味_1559",
+    "level": "上級"
+  },
+  {
+    "word": "word_1560",
+    "meaning": "意味_1560",
+    "level": "初級"
+  },
+  {
+    "word": "word_1561",
+    "meaning": "意味_1561",
+    "level": "中級"
+  },
+  {
+    "word": "word_1562",
+    "meaning": "意味_1562",
+    "level": "上級"
+  },
+  {
+    "word": "word_1563",
+    "meaning": "意味_1563",
+    "level": "初級"
+  },
+  {
+    "word": "word_1564",
+    "meaning": "意味_1564",
+    "level": "中級"
+  },
+  {
+    "word": "word_1565",
+    "meaning": "意味_1565",
+    "level": "上級"
+  },
+  {
+    "word": "word_1566",
+    "meaning": "意味_1566",
+    "level": "初級"
+  },
+  {
+    "word": "word_1567",
+    "meaning": "意味_1567",
+    "level": "中級"
+  },
+  {
+    "word": "word_1568",
+    "meaning": "意味_1568",
+    "level": "上級"
+  },
+  {
+    "word": "word_1569",
+    "meaning": "意味_1569",
+    "level": "初級"
+  },
+  {
+    "word": "word_1570",
+    "meaning": "意味_1570",
+    "level": "中級"
+  },
+  {
+    "word": "word_1571",
+    "meaning": "意味_1571",
+    "level": "上級"
+  },
+  {
+    "word": "word_1572",
+    "meaning": "意味_1572",
+    "level": "初級"
+  },
+  {
+    "word": "word_1573",
+    "meaning": "意味_1573",
+    "level": "中級"
+  },
+  {
+    "word": "word_1574",
+    "meaning": "意味_1574",
+    "level": "上級"
+  },
+  {
+    "word": "word_1575",
+    "meaning": "意味_1575",
+    "level": "初級"
+  },
+  {
+    "word": "word_1576",
+    "meaning": "意味_1576",
+    "level": "中級"
+  },
+  {
+    "word": "word_1577",
+    "meaning": "意味_1577",
+    "level": "上級"
+  },
+  {
+    "word": "word_1578",
+    "meaning": "意味_1578",
+    "level": "初級"
+  },
+  {
+    "word": "word_1579",
+    "meaning": "意味_1579",
+    "level": "中級"
+  },
+  {
+    "word": "word_1580",
+    "meaning": "意味_1580",
+    "level": "上級"
+  },
+  {
+    "word": "word_1581",
+    "meaning": "意味_1581",
+    "level": "初級"
+  },
+  {
+    "word": "word_1582",
+    "meaning": "意味_1582",
+    "level": "中級"
+  },
+  {
+    "word": "word_1583",
+    "meaning": "意味_1583",
+    "level": "上級"
+  },
+  {
+    "word": "word_1584",
+    "meaning": "意味_1584",
+    "level": "初級"
+  },
+  {
+    "word": "word_1585",
+    "meaning": "意味_1585",
+    "level": "中級"
+  },
+  {
+    "word": "word_1586",
+    "meaning": "意味_1586",
+    "level": "上級"
+  },
+  {
+    "word": "word_1587",
+    "meaning": "意味_1587",
+    "level": "初級"
+  },
+  {
+    "word": "word_1588",
+    "meaning": "意味_1588",
+    "level": "中級"
+  },
+  {
+    "word": "word_1589",
+    "meaning": "意味_1589",
+    "level": "上級"
+  },
+  {
+    "word": "word_1590",
+    "meaning": "意味_1590",
+    "level": "初級"
+  },
+  {
+    "word": "word_1591",
+    "meaning": "意味_1591",
+    "level": "中級"
+  },
+  {
+    "word": "word_1592",
+    "meaning": "意味_1592",
+    "level": "上級"
+  },
+  {
+    "word": "word_1593",
+    "meaning": "意味_1593",
+    "level": "初級"
+  },
+  {
+    "word": "word_1594",
+    "meaning": "意味_1594",
+    "level": "中級"
+  },
+  {
+    "word": "word_1595",
+    "meaning": "意味_1595",
+    "level": "上級"
+  },
+  {
+    "word": "word_1596",
+    "meaning": "意味_1596",
+    "level": "初級"
+  },
+  {
+    "word": "word_1597",
+    "meaning": "意味_1597",
+    "level": "中級"
+  },
+  {
+    "word": "word_1598",
+    "meaning": "意味_1598",
+    "level": "上級"
+  },
+  {
+    "word": "word_1599",
+    "meaning": "意味_1599",
+    "level": "初級"
+  },
+  {
+    "word": "word_1600",
+    "meaning": "意味_1600",
+    "level": "中級"
+  },
+  {
+    "word": "word_1601",
+    "meaning": "意味_1601",
+    "level": "上級"
+  },
+  {
+    "word": "word_1602",
+    "meaning": "意味_1602",
+    "level": "初級"
+  },
+  {
+    "word": "word_1603",
+    "meaning": "意味_1603",
+    "level": "中級"
+  },
+  {
+    "word": "word_1604",
+    "meaning": "意味_1604",
+    "level": "上級"
+  },
+  {
+    "word": "word_1605",
+    "meaning": "意味_1605",
+    "level": "初級"
+  },
+  {
+    "word": "word_1606",
+    "meaning": "意味_1606",
+    "level": "中級"
+  },
+  {
+    "word": "word_1607",
+    "meaning": "意味_1607",
+    "level": "上級"
+  },
+  {
+    "word": "word_1608",
+    "meaning": "意味_1608",
+    "level": "初級"
+  },
+  {
+    "word": "word_1609",
+    "meaning": "意味_1609",
+    "level": "中級"
+  },
+  {
+    "word": "word_1610",
+    "meaning": "意味_1610",
+    "level": "上級"
+  },
+  {
+    "word": "word_1611",
+    "meaning": "意味_1611",
+    "level": "初級"
+  },
+  {
+    "word": "word_1612",
+    "meaning": "意味_1612",
+    "level": "中級"
+  },
+  {
+    "word": "word_1613",
+    "meaning": "意味_1613",
+    "level": "上級"
+  },
+  {
+    "word": "word_1614",
+    "meaning": "意味_1614",
+    "level": "初級"
+  },
+  {
+    "word": "word_1615",
+    "meaning": "意味_1615",
+    "level": "中級"
+  },
+  {
+    "word": "word_1616",
+    "meaning": "意味_1616",
+    "level": "上級"
+  },
+  {
+    "word": "word_1617",
+    "meaning": "意味_1617",
+    "level": "初級"
+  },
+  {
+    "word": "word_1618",
+    "meaning": "意味_1618",
+    "level": "中級"
+  },
+  {
+    "word": "word_1619",
+    "meaning": "意味_1619",
+    "level": "上級"
+  },
+  {
+    "word": "word_1620",
+    "meaning": "意味_1620",
+    "level": "初級"
+  },
+  {
+    "word": "word_1621",
+    "meaning": "意味_1621",
+    "level": "中級"
+  },
+  {
+    "word": "word_1622",
+    "meaning": "意味_1622",
+    "level": "上級"
+  },
+  {
+    "word": "word_1623",
+    "meaning": "意味_1623",
+    "level": "初級"
+  },
+  {
+    "word": "word_1624",
+    "meaning": "意味_1624",
+    "level": "中級"
+  },
+  {
+    "word": "word_1625",
+    "meaning": "意味_1625",
+    "level": "上級"
+  },
+  {
+    "word": "word_1626",
+    "meaning": "意味_1626",
+    "level": "初級"
+  },
+  {
+    "word": "word_1627",
+    "meaning": "意味_1627",
+    "level": "中級"
+  },
+  {
+    "word": "word_1628",
+    "meaning": "意味_1628",
+    "level": "上級"
+  },
+  {
+    "word": "word_1629",
+    "meaning": "意味_1629",
+    "level": "初級"
+  },
+  {
+    "word": "word_1630",
+    "meaning": "意味_1630",
+    "level": "中級"
+  },
+  {
+    "word": "word_1631",
+    "meaning": "意味_1631",
+    "level": "上級"
+  },
+  {
+    "word": "word_1632",
+    "meaning": "意味_1632",
+    "level": "初級"
+  },
+  {
+    "word": "word_1633",
+    "meaning": "意味_1633",
+    "level": "中級"
+  },
+  {
+    "word": "word_1634",
+    "meaning": "意味_1634",
+    "level": "上級"
+  },
+  {
+    "word": "word_1635",
+    "meaning": "意味_1635",
+    "level": "初級"
+  },
+  {
+    "word": "word_1636",
+    "meaning": "意味_1636",
+    "level": "中級"
+  },
+  {
+    "word": "word_1637",
+    "meaning": "意味_1637",
+    "level": "上級"
+  },
+  {
+    "word": "word_1638",
+    "meaning": "意味_1638",
+    "level": "初級"
+  },
+  {
+    "word": "word_1639",
+    "meaning": "意味_1639",
+    "level": "中級"
+  },
+  {
+    "word": "word_1640",
+    "meaning": "意味_1640",
+    "level": "上級"
+  },
+  {
+    "word": "word_1641",
+    "meaning": "意味_1641",
+    "level": "初級"
+  },
+  {
+    "word": "word_1642",
+    "meaning": "意味_1642",
+    "level": "中級"
+  },
+  {
+    "word": "word_1643",
+    "meaning": "意味_1643",
+    "level": "上級"
+  },
+  {
+    "word": "word_1644",
+    "meaning": "意味_1644",
+    "level": "初級"
+  },
+  {
+    "word": "word_1645",
+    "meaning": "意味_1645",
+    "level": "中級"
+  },
+  {
+    "word": "word_1646",
+    "meaning": "意味_1646",
+    "level": "上級"
+  },
+  {
+    "word": "word_1647",
+    "meaning": "意味_1647",
+    "level": "初級"
+  },
+  {
+    "word": "word_1648",
+    "meaning": "意味_1648",
+    "level": "中級"
+  },
+  {
+    "word": "word_1649",
+    "meaning": "意味_1649",
+    "level": "上級"
+  },
+  {
+    "word": "word_1650",
+    "meaning": "意味_1650",
+    "level": "初級"
+  },
+  {
+    "word": "word_1651",
+    "meaning": "意味_1651",
+    "level": "中級"
+  },
+  {
+    "word": "word_1652",
+    "meaning": "意味_1652",
+    "level": "上級"
+  },
+  {
+    "word": "word_1653",
+    "meaning": "意味_1653",
+    "level": "初級"
+  },
+  {
+    "word": "word_1654",
+    "meaning": "意味_1654",
+    "level": "中級"
+  },
+  {
+    "word": "word_1655",
+    "meaning": "意味_1655",
+    "level": "上級"
+  },
+  {
+    "word": "word_1656",
+    "meaning": "意味_1656",
+    "level": "初級"
+  },
+  {
+    "word": "word_1657",
+    "meaning": "意味_1657",
+    "level": "中級"
+  },
+  {
+    "word": "word_1658",
+    "meaning": "意味_1658",
+    "level": "上級"
+  },
+  {
+    "word": "word_1659",
+    "meaning": "意味_1659",
+    "level": "初級"
+  },
+  {
+    "word": "word_1660",
+    "meaning": "意味_1660",
+    "level": "中級"
+  },
+  {
+    "word": "word_1661",
+    "meaning": "意味_1661",
+    "level": "上級"
+  },
+  {
+    "word": "word_1662",
+    "meaning": "意味_1662",
+    "level": "初級"
+  },
+  {
+    "word": "word_1663",
+    "meaning": "意味_1663",
+    "level": "中級"
+  },
+  {
+    "word": "word_1664",
+    "meaning": "意味_1664",
+    "level": "上級"
+  },
+  {
+    "word": "word_1665",
+    "meaning": "意味_1665",
+    "level": "初級"
+  },
+  {
+    "word": "word_1666",
+    "meaning": "意味_1666",
+    "level": "中級"
+  },
+  {
+    "word": "word_1667",
+    "meaning": "意味_1667",
+    "level": "上級"
+  },
+  {
+    "word": "word_1668",
+    "meaning": "意味_1668",
+    "level": "初級"
+  },
+  {
+    "word": "word_1669",
+    "meaning": "意味_1669",
+    "level": "中級"
+  },
+  {
+    "word": "word_1670",
+    "meaning": "意味_1670",
+    "level": "上級"
+  },
+  {
+    "word": "word_1671",
+    "meaning": "意味_1671",
+    "level": "初級"
+  },
+  {
+    "word": "word_1672",
+    "meaning": "意味_1672",
+    "level": "中級"
+  },
+  {
+    "word": "word_1673",
+    "meaning": "意味_1673",
+    "level": "上級"
+  },
+  {
+    "word": "word_1674",
+    "meaning": "意味_1674",
+    "level": "初級"
+  },
+  {
+    "word": "word_1675",
+    "meaning": "意味_1675",
+    "level": "中級"
+  },
+  {
+    "word": "word_1676",
+    "meaning": "意味_1676",
+    "level": "上級"
+  },
+  {
+    "word": "word_1677",
+    "meaning": "意味_1677",
+    "level": "初級"
+  },
+  {
+    "word": "word_1678",
+    "meaning": "意味_1678",
+    "level": "中級"
+  },
+  {
+    "word": "word_1679",
+    "meaning": "意味_1679",
+    "level": "上級"
+  },
+  {
+    "word": "word_1680",
+    "meaning": "意味_1680",
+    "level": "初級"
+  },
+  {
+    "word": "word_1681",
+    "meaning": "意味_1681",
+    "level": "中級"
+  },
+  {
+    "word": "word_1682",
+    "meaning": "意味_1682",
+    "level": "上級"
+  },
+  {
+    "word": "word_1683",
+    "meaning": "意味_1683",
+    "level": "初級"
+  },
+  {
+    "word": "word_1684",
+    "meaning": "意味_1684",
+    "level": "中級"
+  },
+  {
+    "word": "word_1685",
+    "meaning": "意味_1685",
+    "level": "上級"
+  },
+  {
+    "word": "word_1686",
+    "meaning": "意味_1686",
+    "level": "初級"
+  },
+  {
+    "word": "word_1687",
+    "meaning": "意味_1687",
+    "level": "中級"
+  },
+  {
+    "word": "word_1688",
+    "meaning": "意味_1688",
+    "level": "上級"
+  },
+  {
+    "word": "word_1689",
+    "meaning": "意味_1689",
+    "level": "初級"
+  },
+  {
+    "word": "word_1690",
+    "meaning": "意味_1690",
+    "level": "中級"
+  },
+  {
+    "word": "word_1691",
+    "meaning": "意味_1691",
+    "level": "上級"
+  },
+  {
+    "word": "word_1692",
+    "meaning": "意味_1692",
+    "level": "初級"
+  },
+  {
+    "word": "word_1693",
+    "meaning": "意味_1693",
+    "level": "中級"
+  },
+  {
+    "word": "word_1694",
+    "meaning": "意味_1694",
+    "level": "上級"
+  },
+  {
+    "word": "word_1695",
+    "meaning": "意味_1695",
+    "level": "初級"
+  },
+  {
+    "word": "word_1696",
+    "meaning": "意味_1696",
+    "level": "中級"
+  },
+  {
+    "word": "word_1697",
+    "meaning": "意味_1697",
+    "level": "上級"
+  },
+  {
+    "word": "word_1698",
+    "meaning": "意味_1698",
+    "level": "初級"
+  },
+  {
+    "word": "word_1699",
+    "meaning": "意味_1699",
+    "level": "中級"
+  },
+  {
+    "word": "word_1700",
+    "meaning": "意味_1700",
+    "level": "上級"
+  },
+  {
+    "word": "word_1701",
+    "meaning": "意味_1701",
+    "level": "初級"
+  },
+  {
+    "word": "word_1702",
+    "meaning": "意味_1702",
+    "level": "中級"
+  },
+  {
+    "word": "word_1703",
+    "meaning": "意味_1703",
+    "level": "上級"
+  },
+  {
+    "word": "word_1704",
+    "meaning": "意味_1704",
+    "level": "初級"
+  },
+  {
+    "word": "word_1705",
+    "meaning": "意味_1705",
+    "level": "中級"
+  },
+  {
+    "word": "word_1706",
+    "meaning": "意味_1706",
+    "level": "上級"
+  },
+  {
+    "word": "word_1707",
+    "meaning": "意味_1707",
+    "level": "初級"
+  },
+  {
+    "word": "word_1708",
+    "meaning": "意味_1708",
+    "level": "中級"
+  },
+  {
+    "word": "word_1709",
+    "meaning": "意味_1709",
+    "level": "上級"
+  },
+  {
+    "word": "word_1710",
+    "meaning": "意味_1710",
+    "level": "初級"
+  },
+  {
+    "word": "word_1711",
+    "meaning": "意味_1711",
+    "level": "中級"
+  },
+  {
+    "word": "word_1712",
+    "meaning": "意味_1712",
+    "level": "上級"
+  },
+  {
+    "word": "word_1713",
+    "meaning": "意味_1713",
+    "level": "初級"
+  },
+  {
+    "word": "word_1714",
+    "meaning": "意味_1714",
+    "level": "中級"
+  },
+  {
+    "word": "word_1715",
+    "meaning": "意味_1715",
+    "level": "上級"
+  },
+  {
+    "word": "word_1716",
+    "meaning": "意味_1716",
+    "level": "初級"
+  },
+  {
+    "word": "word_1717",
+    "meaning": "意味_1717",
+    "level": "中級"
+  },
+  {
+    "word": "word_1718",
+    "meaning": "意味_1718",
+    "level": "上級"
+  },
+  {
+    "word": "word_1719",
+    "meaning": "意味_1719",
+    "level": "初級"
+  },
+  {
+    "word": "word_1720",
+    "meaning": "意味_1720",
+    "level": "中級"
+  },
+  {
+    "word": "word_1721",
+    "meaning": "意味_1721",
+    "level": "上級"
+  },
+  {
+    "word": "word_1722",
+    "meaning": "意味_1722",
+    "level": "初級"
+  },
+  {
+    "word": "word_1723",
+    "meaning": "意味_1723",
+    "level": "中級"
+  },
+  {
+    "word": "word_1724",
+    "meaning": "意味_1724",
+    "level": "上級"
+  },
+  {
+    "word": "word_1725",
+    "meaning": "意味_1725",
+    "level": "初級"
+  },
+  {
+    "word": "word_1726",
+    "meaning": "意味_1726",
+    "level": "中級"
+  },
+  {
+    "word": "word_1727",
+    "meaning": "意味_1727",
+    "level": "上級"
+  },
+  {
+    "word": "word_1728",
+    "meaning": "意味_1728",
+    "level": "初級"
+  },
+  {
+    "word": "word_1729",
+    "meaning": "意味_1729",
+    "level": "中級"
+  },
+  {
+    "word": "word_1730",
+    "meaning": "意味_1730",
+    "level": "上級"
+  },
+  {
+    "word": "word_1731",
+    "meaning": "意味_1731",
+    "level": "初級"
+  },
+  {
+    "word": "word_1732",
+    "meaning": "意味_1732",
+    "level": "中級"
+  },
+  {
+    "word": "word_1733",
+    "meaning": "意味_1733",
+    "level": "上級"
+  },
+  {
+    "word": "word_1734",
+    "meaning": "意味_1734",
+    "level": "初級"
+  },
+  {
+    "word": "word_1735",
+    "meaning": "意味_1735",
+    "level": "中級"
+  },
+  {
+    "word": "word_1736",
+    "meaning": "意味_1736",
+    "level": "上級"
+  },
+  {
+    "word": "word_1737",
+    "meaning": "意味_1737",
+    "level": "初級"
+  },
+  {
+    "word": "word_1738",
+    "meaning": "意味_1738",
+    "level": "中級"
+  },
+  {
+    "word": "word_1739",
+    "meaning": "意味_1739",
+    "level": "上級"
+  },
+  {
+    "word": "word_1740",
+    "meaning": "意味_1740",
+    "level": "初級"
+  },
+  {
+    "word": "word_1741",
+    "meaning": "意味_1741",
+    "level": "中級"
+  },
+  {
+    "word": "word_1742",
+    "meaning": "意味_1742",
+    "level": "上級"
+  },
+  {
+    "word": "word_1743",
+    "meaning": "意味_1743",
+    "level": "初級"
+  },
+  {
+    "word": "word_1744",
+    "meaning": "意味_1744",
+    "level": "中級"
+  },
+  {
+    "word": "word_1745",
+    "meaning": "意味_1745",
+    "level": "上級"
+  },
+  {
+    "word": "word_1746",
+    "meaning": "意味_1746",
+    "level": "初級"
+  },
+  {
+    "word": "word_1747",
+    "meaning": "意味_1747",
+    "level": "中級"
+  },
+  {
+    "word": "word_1748",
+    "meaning": "意味_1748",
+    "level": "上級"
+  },
+  {
+    "word": "word_1749",
+    "meaning": "意味_1749",
+    "level": "初級"
+  },
+  {
+    "word": "word_1750",
+    "meaning": "意味_1750",
+    "level": "中級"
+  },
+  {
+    "word": "word_1751",
+    "meaning": "意味_1751",
+    "level": "上級"
+  },
+  {
+    "word": "word_1752",
+    "meaning": "意味_1752",
+    "level": "初級"
+  },
+  {
+    "word": "word_1753",
+    "meaning": "意味_1753",
+    "level": "中級"
+  },
+  {
+    "word": "word_1754",
+    "meaning": "意味_1754",
+    "level": "上級"
+  },
+  {
+    "word": "word_1755",
+    "meaning": "意味_1755",
+    "level": "初級"
+  },
+  {
+    "word": "word_1756",
+    "meaning": "意味_1756",
+    "level": "中級"
+  },
+  {
+    "word": "word_1757",
+    "meaning": "意味_1757",
+    "level": "上級"
+  },
+  {
+    "word": "word_1758",
+    "meaning": "意味_1758",
+    "level": "初級"
+  },
+  {
+    "word": "word_1759",
+    "meaning": "意味_1759",
+    "level": "中級"
+  },
+  {
+    "word": "word_1760",
+    "meaning": "意味_1760",
+    "level": "上級"
+  },
+  {
+    "word": "word_1761",
+    "meaning": "意味_1761",
+    "level": "初級"
+  },
+  {
+    "word": "word_1762",
+    "meaning": "意味_1762",
+    "level": "中級"
+  },
+  {
+    "word": "word_1763",
+    "meaning": "意味_1763",
+    "level": "上級"
+  },
+  {
+    "word": "word_1764",
+    "meaning": "意味_1764",
+    "level": "初級"
+  },
+  {
+    "word": "word_1765",
+    "meaning": "意味_1765",
+    "level": "中級"
+  },
+  {
+    "word": "word_1766",
+    "meaning": "意味_1766",
+    "level": "上級"
+  },
+  {
+    "word": "word_1767",
+    "meaning": "意味_1767",
+    "level": "初級"
+  },
+  {
+    "word": "word_1768",
+    "meaning": "意味_1768",
+    "level": "中級"
+  },
+  {
+    "word": "word_1769",
+    "meaning": "意味_1769",
+    "level": "上級"
+  },
+  {
+    "word": "word_1770",
+    "meaning": "意味_1770",
+    "level": "初級"
+  },
+  {
+    "word": "word_1771",
+    "meaning": "意味_1771",
+    "level": "中級"
+  },
+  {
+    "word": "word_1772",
+    "meaning": "意味_1772",
+    "level": "上級"
+  },
+  {
+    "word": "word_1773",
+    "meaning": "意味_1773",
+    "level": "初級"
+  },
+  {
+    "word": "word_1774",
+    "meaning": "意味_1774",
+    "level": "中級"
+  },
+  {
+    "word": "word_1775",
+    "meaning": "意味_1775",
+    "level": "上級"
+  },
+  {
+    "word": "word_1776",
+    "meaning": "意味_1776",
+    "level": "初級"
+  },
+  {
+    "word": "word_1777",
+    "meaning": "意味_1777",
+    "level": "中級"
+  },
+  {
+    "word": "word_1778",
+    "meaning": "意味_1778",
+    "level": "上級"
+  },
+  {
+    "word": "word_1779",
+    "meaning": "意味_1779",
+    "level": "初級"
+  },
+  {
+    "word": "word_1780",
+    "meaning": "意味_1780",
+    "level": "中級"
+  },
+  {
+    "word": "word_1781",
+    "meaning": "意味_1781",
+    "level": "上級"
+  },
+  {
+    "word": "word_1782",
+    "meaning": "意味_1782",
+    "level": "初級"
+  },
+  {
+    "word": "word_1783",
+    "meaning": "意味_1783",
+    "level": "中級"
+  },
+  {
+    "word": "word_1784",
+    "meaning": "意味_1784",
+    "level": "上級"
+  },
+  {
+    "word": "word_1785",
+    "meaning": "意味_1785",
+    "level": "初級"
+  },
+  {
+    "word": "word_1786",
+    "meaning": "意味_1786",
+    "level": "中級"
+  },
+  {
+    "word": "word_1787",
+    "meaning": "意味_1787",
+    "level": "上級"
+  },
+  {
+    "word": "word_1788",
+    "meaning": "意味_1788",
+    "level": "初級"
+  },
+  {
+    "word": "word_1789",
+    "meaning": "意味_1789",
+    "level": "中級"
+  },
+  {
+    "word": "word_1790",
+    "meaning": "意味_1790",
+    "level": "上級"
+  },
+  {
+    "word": "word_1791",
+    "meaning": "意味_1791",
+    "level": "初級"
+  },
+  {
+    "word": "word_1792",
+    "meaning": "意味_1792",
+    "level": "中級"
+  },
+  {
+    "word": "word_1793",
+    "meaning": "意味_1793",
+    "level": "上級"
+  },
+  {
+    "word": "word_1794",
+    "meaning": "意味_1794",
+    "level": "初級"
+  },
+  {
+    "word": "word_1795",
+    "meaning": "意味_1795",
+    "level": "中級"
+  },
+  {
+    "word": "word_1796",
+    "meaning": "意味_1796",
+    "level": "上級"
+  },
+  {
+    "word": "word_1797",
+    "meaning": "意味_1797",
+    "level": "初級"
+  },
+  {
+    "word": "word_1798",
+    "meaning": "意味_1798",
+    "level": "中級"
+  },
+  {
+    "word": "word_1799",
+    "meaning": "意味_1799",
+    "level": "上級"
+  },
+  {
+    "word": "word_1800",
+    "meaning": "意味_1800",
+    "level": "初級"
+  },
+  {
+    "word": "word_1801",
+    "meaning": "意味_1801",
+    "level": "中級"
+  },
+  {
+    "word": "word_1802",
+    "meaning": "意味_1802",
+    "level": "上級"
+  },
+  {
+    "word": "word_1803",
+    "meaning": "意味_1803",
+    "level": "初級"
+  },
+  {
+    "word": "word_1804",
+    "meaning": "意味_1804",
+    "level": "中級"
+  },
+  {
+    "word": "word_1805",
+    "meaning": "意味_1805",
+    "level": "上級"
+  },
+  {
+    "word": "word_1806",
+    "meaning": "意味_1806",
+    "level": "初級"
+  },
+  {
+    "word": "word_1807",
+    "meaning": "意味_1807",
+    "level": "中級"
+  },
+  {
+    "word": "word_1808",
+    "meaning": "意味_1808",
+    "level": "上級"
+  },
+  {
+    "word": "word_1809",
+    "meaning": "意味_1809",
+    "level": "初級"
+  },
+  {
+    "word": "word_1810",
+    "meaning": "意味_1810",
+    "level": "中級"
+  },
+  {
+    "word": "word_1811",
+    "meaning": "意味_1811",
+    "level": "上級"
+  },
+  {
+    "word": "word_1812",
+    "meaning": "意味_1812",
+    "level": "初級"
+  },
+  {
+    "word": "word_1813",
+    "meaning": "意味_1813",
+    "level": "中級"
+  },
+  {
+    "word": "word_1814",
+    "meaning": "意味_1814",
+    "level": "上級"
+  },
+  {
+    "word": "word_1815",
+    "meaning": "意味_1815",
+    "level": "初級"
+  },
+  {
+    "word": "word_1816",
+    "meaning": "意味_1816",
+    "level": "中級"
+  },
+  {
+    "word": "word_1817",
+    "meaning": "意味_1817",
+    "level": "上級"
+  },
+  {
+    "word": "word_1818",
+    "meaning": "意味_1818",
+    "level": "初級"
+  },
+  {
+    "word": "word_1819",
+    "meaning": "意味_1819",
+    "level": "中級"
+  },
+  {
+    "word": "word_1820",
+    "meaning": "意味_1820",
+    "level": "上級"
+  },
+  {
+    "word": "word_1821",
+    "meaning": "意味_1821",
+    "level": "初級"
+  },
+  {
+    "word": "word_1822",
+    "meaning": "意味_1822",
+    "level": "中級"
+  },
+  {
+    "word": "word_1823",
+    "meaning": "意味_1823",
+    "level": "上級"
+  },
+  {
+    "word": "word_1824",
+    "meaning": "意味_1824",
+    "level": "初級"
+  },
+  {
+    "word": "word_1825",
+    "meaning": "意味_1825",
+    "level": "中級"
+  },
+  {
+    "word": "word_1826",
+    "meaning": "意味_1826",
+    "level": "上級"
+  },
+  {
+    "word": "word_1827",
+    "meaning": "意味_1827",
+    "level": "初級"
+  },
+  {
+    "word": "word_1828",
+    "meaning": "意味_1828",
+    "level": "中級"
+  },
+  {
+    "word": "word_1829",
+    "meaning": "意味_1829",
+    "level": "上級"
+  },
+  {
+    "word": "word_1830",
+    "meaning": "意味_1830",
+    "level": "初級"
+  },
+  {
+    "word": "word_1831",
+    "meaning": "意味_1831",
+    "level": "中級"
+  },
+  {
+    "word": "word_1832",
+    "meaning": "意味_1832",
+    "level": "上級"
+  },
+  {
+    "word": "word_1833",
+    "meaning": "意味_1833",
+    "level": "初級"
+  },
+  {
+    "word": "word_1834",
+    "meaning": "意味_1834",
+    "level": "中級"
+  },
+  {
+    "word": "word_1835",
+    "meaning": "意味_1835",
+    "level": "上級"
+  },
+  {
+    "word": "word_1836",
+    "meaning": "意味_1836",
+    "level": "初級"
+  },
+  {
+    "word": "word_1837",
+    "meaning": "意味_1837",
+    "level": "中級"
+  },
+  {
+    "word": "word_1838",
+    "meaning": "意味_1838",
+    "level": "上級"
+  },
+  {
+    "word": "word_1839",
+    "meaning": "意味_1839",
+    "level": "初級"
+  },
+  {
+    "word": "word_1840",
+    "meaning": "意味_1840",
+    "level": "中級"
+  },
+  {
+    "word": "word_1841",
+    "meaning": "意味_1841",
+    "level": "上級"
+  },
+  {
+    "word": "word_1842",
+    "meaning": "意味_1842",
+    "level": "初級"
+  },
+  {
+    "word": "word_1843",
+    "meaning": "意味_1843",
+    "level": "中級"
+  },
+  {
+    "word": "word_1844",
+    "meaning": "意味_1844",
+    "level": "上級"
+  },
+  {
+    "word": "word_1845",
+    "meaning": "意味_1845",
+    "level": "初級"
+  },
+  {
+    "word": "word_1846",
+    "meaning": "意味_1846",
+    "level": "中級"
+  },
+  {
+    "word": "word_1847",
+    "meaning": "意味_1847",
+    "level": "上級"
+  },
+  {
+    "word": "word_1848",
+    "meaning": "意味_1848",
+    "level": "初級"
+  },
+  {
+    "word": "word_1849",
+    "meaning": "意味_1849",
+    "level": "中級"
+  },
+  {
+    "word": "word_1850",
+    "meaning": "意味_1850",
+    "level": "上級"
+  },
+  {
+    "word": "word_1851",
+    "meaning": "意味_1851",
+    "level": "初級"
+  },
+  {
+    "word": "word_1852",
+    "meaning": "意味_1852",
+    "level": "中級"
+  },
+  {
+    "word": "word_1853",
+    "meaning": "意味_1853",
+    "level": "上級"
+  },
+  {
+    "word": "word_1854",
+    "meaning": "意味_1854",
+    "level": "初級"
+  },
+  {
+    "word": "word_1855",
+    "meaning": "意味_1855",
+    "level": "中級"
+  },
+  {
+    "word": "word_1856",
+    "meaning": "意味_1856",
+    "level": "上級"
+  },
+  {
+    "word": "word_1857",
+    "meaning": "意味_1857",
+    "level": "初級"
+  },
+  {
+    "word": "word_1858",
+    "meaning": "意味_1858",
+    "level": "中級"
+  },
+  {
+    "word": "word_1859",
+    "meaning": "意味_1859",
+    "level": "上級"
+  },
+  {
+    "word": "word_1860",
+    "meaning": "意味_1860",
+    "level": "初級"
+  },
+  {
+    "word": "word_1861",
+    "meaning": "意味_1861",
+    "level": "中級"
+  },
+  {
+    "word": "word_1862",
+    "meaning": "意味_1862",
+    "level": "上級"
+  },
+  {
+    "word": "word_1863",
+    "meaning": "意味_1863",
+    "level": "初級"
+  },
+  {
+    "word": "word_1864",
+    "meaning": "意味_1864",
+    "level": "中級"
+  },
+  {
+    "word": "word_1865",
+    "meaning": "意味_1865",
+    "level": "上級"
+  },
+  {
+    "word": "word_1866",
+    "meaning": "意味_1866",
+    "level": "初級"
+  },
+  {
+    "word": "word_1867",
+    "meaning": "意味_1867",
+    "level": "中級"
+  },
+  {
+    "word": "word_1868",
+    "meaning": "意味_1868",
+    "level": "上級"
+  },
+  {
+    "word": "word_1869",
+    "meaning": "意味_1869",
+    "level": "初級"
+  },
+  {
+    "word": "word_1870",
+    "meaning": "意味_1870",
+    "level": "中級"
+  },
+  {
+    "word": "word_1871",
+    "meaning": "意味_1871",
+    "level": "上級"
+  },
+  {
+    "word": "word_1872",
+    "meaning": "意味_1872",
+    "level": "初級"
+  },
+  {
+    "word": "word_1873",
+    "meaning": "意味_1873",
+    "level": "中級"
+  },
+  {
+    "word": "word_1874",
+    "meaning": "意味_1874",
+    "level": "上級"
+  },
+  {
+    "word": "word_1875",
+    "meaning": "意味_1875",
+    "level": "初級"
+  },
+  {
+    "word": "word_1876",
+    "meaning": "意味_1876",
+    "level": "中級"
+  },
+  {
+    "word": "word_1877",
+    "meaning": "意味_1877",
+    "level": "上級"
+  },
+  {
+    "word": "word_1878",
+    "meaning": "意味_1878",
+    "level": "初級"
+  },
+  {
+    "word": "word_1879",
+    "meaning": "意味_1879",
+    "level": "中級"
+  },
+  {
+    "word": "word_1880",
+    "meaning": "意味_1880",
+    "level": "上級"
+  },
+  {
+    "word": "word_1881",
+    "meaning": "意味_1881",
+    "level": "初級"
+  },
+  {
+    "word": "word_1882",
+    "meaning": "意味_1882",
+    "level": "中級"
+  },
+  {
+    "word": "word_1883",
+    "meaning": "意味_1883",
+    "level": "上級"
+  },
+  {
+    "word": "word_1884",
+    "meaning": "意味_1884",
+    "level": "初級"
+  },
+  {
+    "word": "word_1885",
+    "meaning": "意味_1885",
+    "level": "中級"
+  },
+  {
+    "word": "word_1886",
+    "meaning": "意味_1886",
+    "level": "上級"
+  },
+  {
+    "word": "word_1887",
+    "meaning": "意味_1887",
+    "level": "初級"
+  },
+  {
+    "word": "word_1888",
+    "meaning": "意味_1888",
+    "level": "中級"
+  },
+  {
+    "word": "word_1889",
+    "meaning": "意味_1889",
+    "level": "上級"
+  },
+  {
+    "word": "word_1890",
+    "meaning": "意味_1890",
+    "level": "初級"
+  },
+  {
+    "word": "word_1891",
+    "meaning": "意味_1891",
+    "level": "中級"
+  },
+  {
+    "word": "word_1892",
+    "meaning": "意味_1892",
+    "level": "上級"
+  },
+  {
+    "word": "word_1893",
+    "meaning": "意味_1893",
+    "level": "初級"
+  },
+  {
+    "word": "word_1894",
+    "meaning": "意味_1894",
+    "level": "中級"
+  },
+  {
+    "word": "word_1895",
+    "meaning": "意味_1895",
+    "level": "上級"
+  },
+  {
+    "word": "word_1896",
+    "meaning": "意味_1896",
+    "level": "初級"
+  },
+  {
+    "word": "word_1897",
+    "meaning": "意味_1897",
+    "level": "中級"
+  },
+  {
+    "word": "word_1898",
+    "meaning": "意味_1898",
+    "level": "上級"
+  },
+  {
+    "word": "word_1899",
+    "meaning": "意味_1899",
+    "level": "初級"
+  },
+  {
+    "word": "word_1900",
+    "meaning": "意味_1900",
+    "level": "中級"
+  },
+  {
+    "word": "word_1901",
+    "meaning": "意味_1901",
+    "level": "上級"
+  },
+  {
+    "word": "word_1902",
+    "meaning": "意味_1902",
+    "level": "初級"
+  },
+  {
+    "word": "word_1903",
+    "meaning": "意味_1903",
+    "level": "中級"
+  },
+  {
+    "word": "word_1904",
+    "meaning": "意味_1904",
+    "level": "上級"
+  },
+  {
+    "word": "word_1905",
+    "meaning": "意味_1905",
+    "level": "初級"
+  },
+  {
+    "word": "word_1906",
+    "meaning": "意味_1906",
+    "level": "中級"
+  },
+  {
+    "word": "word_1907",
+    "meaning": "意味_1907",
+    "level": "上級"
+  },
+  {
+    "word": "word_1908",
+    "meaning": "意味_1908",
+    "level": "初級"
+  },
+  {
+    "word": "word_1909",
+    "meaning": "意味_1909",
+    "level": "中級"
+  },
+  {
+    "word": "word_1910",
+    "meaning": "意味_1910",
+    "level": "上級"
+  },
+  {
+    "word": "word_1911",
+    "meaning": "意味_1911",
+    "level": "初級"
+  },
+  {
+    "word": "word_1912",
+    "meaning": "意味_1912",
+    "level": "中級"
+  },
+  {
+    "word": "word_1913",
+    "meaning": "意味_1913",
+    "level": "上級"
+  },
+  {
+    "word": "word_1914",
+    "meaning": "意味_1914",
+    "level": "初級"
+  },
+  {
+    "word": "word_1915",
+    "meaning": "意味_1915",
+    "level": "中級"
+  },
+  {
+    "word": "word_1916",
+    "meaning": "意味_1916",
+    "level": "上級"
+  },
+  {
+    "word": "word_1917",
+    "meaning": "意味_1917",
+    "level": "初級"
+  },
+  {
+    "word": "word_1918",
+    "meaning": "意味_1918",
+    "level": "中級"
+  },
+  {
+    "word": "word_1919",
+    "meaning": "意味_1919",
+    "level": "上級"
+  },
+  {
+    "word": "word_1920",
+    "meaning": "意味_1920",
+    "level": "初級"
+  },
+  {
+    "word": "word_1921",
+    "meaning": "意味_1921",
+    "level": "中級"
+  },
+  {
+    "word": "word_1922",
+    "meaning": "意味_1922",
+    "level": "上級"
+  },
+  {
+    "word": "word_1923",
+    "meaning": "意味_1923",
+    "level": "初級"
+  },
+  {
+    "word": "word_1924",
+    "meaning": "意味_1924",
+    "level": "中級"
+  },
+  {
+    "word": "word_1925",
+    "meaning": "意味_1925",
+    "level": "上級"
+  },
+  {
+    "word": "word_1926",
+    "meaning": "意味_1926",
+    "level": "初級"
+  },
+  {
+    "word": "word_1927",
+    "meaning": "意味_1927",
+    "level": "中級"
+  },
+  {
+    "word": "word_1928",
+    "meaning": "意味_1928",
+    "level": "上級"
+  },
+  {
+    "word": "word_1929",
+    "meaning": "意味_1929",
+    "level": "初級"
+  },
+  {
+    "word": "word_1930",
+    "meaning": "意味_1930",
+    "level": "中級"
+  },
+  {
+    "word": "word_1931",
+    "meaning": "意味_1931",
+    "level": "上級"
+  },
+  {
+    "word": "word_1932",
+    "meaning": "意味_1932",
+    "level": "初級"
+  },
+  {
+    "word": "word_1933",
+    "meaning": "意味_1933",
+    "level": "中級"
+  },
+  {
+    "word": "word_1934",
+    "meaning": "意味_1934",
+    "level": "上級"
+  },
+  {
+    "word": "word_1935",
+    "meaning": "意味_1935",
+    "level": "初級"
+  },
+  {
+    "word": "word_1936",
+    "meaning": "意味_1936",
+    "level": "中級"
+  },
+  {
+    "word": "word_1937",
+    "meaning": "意味_1937",
+    "level": "上級"
+  },
+  {
+    "word": "word_1938",
+    "meaning": "意味_1938",
+    "level": "初級"
+  },
+  {
+    "word": "word_1939",
+    "meaning": "意味_1939",
+    "level": "中級"
+  },
+  {
+    "word": "word_1940",
+    "meaning": "意味_1940",
+    "level": "上級"
+  },
+  {
+    "word": "word_1941",
+    "meaning": "意味_1941",
+    "level": "初級"
+  },
+  {
+    "word": "word_1942",
+    "meaning": "意味_1942",
+    "level": "中級"
+  },
+  {
+    "word": "word_1943",
+    "meaning": "意味_1943",
+    "level": "上級"
+  },
+  {
+    "word": "word_1944",
+    "meaning": "意味_1944",
+    "level": "初級"
+  },
+  {
+    "word": "word_1945",
+    "meaning": "意味_1945",
+    "level": "中級"
+  },
+  {
+    "word": "word_1946",
+    "meaning": "意味_1946",
+    "level": "上級"
+  },
+  {
+    "word": "word_1947",
+    "meaning": "意味_1947",
+    "level": "初級"
+  },
+  {
+    "word": "word_1948",
+    "meaning": "意味_1948",
+    "level": "中級"
+  },
+  {
+    "word": "word_1949",
+    "meaning": "意味_1949",
+    "level": "上級"
+  },
+  {
+    "word": "word_1950",
+    "meaning": "意味_1950",
+    "level": "初級"
+  },
+  {
+    "word": "word_1951",
+    "meaning": "意味_1951",
+    "level": "中級"
+  },
+  {
+    "word": "word_1952",
+    "meaning": "意味_1952",
+    "level": "上級"
+  },
+  {
+    "word": "word_1953",
+    "meaning": "意味_1953",
+    "level": "初級"
+  },
+  {
+    "word": "word_1954",
+    "meaning": "意味_1954",
+    "level": "中級"
+  },
+  {
+    "word": "word_1955",
+    "meaning": "意味_1955",
+    "level": "上級"
+  },
+  {
+    "word": "word_1956",
+    "meaning": "意味_1956",
+    "level": "初級"
+  },
+  {
+    "word": "word_1957",
+    "meaning": "意味_1957",
+    "level": "中級"
+  },
+  {
+    "word": "word_1958",
+    "meaning": "意味_1958",
+    "level": "上級"
+  },
+  {
+    "word": "word_1959",
+    "meaning": "意味_1959",
+    "level": "初級"
+  },
+  {
+    "word": "word_1960",
+    "meaning": "意味_1960",
+    "level": "中級"
+  },
+  {
+    "word": "word_1961",
+    "meaning": "意味_1961",
+    "level": "上級"
+  },
+  {
+    "word": "word_1962",
+    "meaning": "意味_1962",
+    "level": "初級"
+  },
+  {
+    "word": "word_1963",
+    "meaning": "意味_1963",
+    "level": "中級"
+  },
+  {
+    "word": "word_1964",
+    "meaning": "意味_1964",
+    "level": "上級"
+  },
+  {
+    "word": "word_1965",
+    "meaning": "意味_1965",
+    "level": "初級"
+  },
+  {
+    "word": "word_1966",
+    "meaning": "意味_1966",
+    "level": "中級"
+  },
+  {
+    "word": "word_1967",
+    "meaning": "意味_1967",
+    "level": "上級"
+  },
+  {
+    "word": "word_1968",
+    "meaning": "意味_1968",
+    "level": "初級"
+  },
+  {
+    "word": "word_1969",
+    "meaning": "意味_1969",
+    "level": "中級"
+  },
+  {
+    "word": "word_1970",
+    "meaning": "意味_1970",
+    "level": "上級"
+  },
+  {
+    "word": "word_1971",
+    "meaning": "意味_1971",
+    "level": "初級"
+  },
+  {
+    "word": "word_1972",
+    "meaning": "意味_1972",
+    "level": "中級"
+  },
+  {
+    "word": "word_1973",
+    "meaning": "意味_1973",
+    "level": "上級"
+  },
+  {
+    "word": "word_1974",
+    "meaning": "意味_1974",
+    "level": "初級"
+  },
+  {
+    "word": "word_1975",
+    "meaning": "意味_1975",
+    "level": "中級"
+  },
+  {
+    "word": "word_1976",
+    "meaning": "意味_1976",
+    "level": "上級"
+  },
+  {
+    "word": "word_1977",
+    "meaning": "意味_1977",
+    "level": "初級"
+  },
+  {
+    "word": "word_1978",
+    "meaning": "意味_1978",
+    "level": "中級"
+  },
+  {
+    "word": "word_1979",
+    "meaning": "意味_1979",
+    "level": "上級"
+  },
+  {
+    "word": "word_1980",
+    "meaning": "意味_1980",
+    "level": "初級"
+  },
+  {
+    "word": "word_1981",
+    "meaning": "意味_1981",
+    "level": "中級"
+  },
+  {
+    "word": "word_1982",
+    "meaning": "意味_1982",
+    "level": "上級"
+  },
+  {
+    "word": "word_1983",
+    "meaning": "意味_1983",
+    "level": "初級"
+  },
+  {
+    "word": "word_1984",
+    "meaning": "意味_1984",
+    "level": "中級"
+  },
+  {
+    "word": "word_1985",
+    "meaning": "意味_1985",
+    "level": "上級"
+  },
+  {
+    "word": "word_1986",
+    "meaning": "意味_1986",
+    "level": "初級"
+  },
+  {
+    "word": "word_1987",
+    "meaning": "意味_1987",
+    "level": "中級"
+  },
+  {
+    "word": "word_1988",
+    "meaning": "意味_1988",
+    "level": "上級"
+  },
+  {
+    "word": "word_1989",
+    "meaning": "意味_1989",
+    "level": "初級"
+  },
+  {
+    "word": "word_1990",
+    "meaning": "意味_1990",
+    "level": "中級"
+  },
+  {
+    "word": "word_1991",
+    "meaning": "意味_1991",
+    "level": "上級"
+  },
+  {
+    "word": "word_1992",
+    "meaning": "意味_1992",
+    "level": "初級"
+  },
+  {
+    "word": "word_1993",
+    "meaning": "意味_1993",
+    "level": "中級"
+  },
+  {
+    "word": "word_1994",
+    "meaning": "意味_1994",
+    "level": "上級"
+  },
+  {
+    "word": "word_1995",
+    "meaning": "意味_1995",
+    "level": "初級"
+  },
+  {
+    "word": "word_1996",
+    "meaning": "意味_1996",
+    "level": "中級"
+  },
+  {
+    "word": "word_1997",
+    "meaning": "意味_1997",
+    "level": "上級"
+  },
+  {
+    "word": "word_1998",
+    "meaning": "意味_1998",
+    "level": "初級"
+  },
+  {
+    "word": "word_1999",
+    "meaning": "意味_1999",
+    "level": "中級"
+  },
+  {
+    "word": "word_2000",
+    "meaning": "意味_2000",
+    "level": "上級"
+  }
+];
+
+let currentQuestions = [];
+let currentIndex = 0;
+let score = 0;
+
+function startQuiz() {
+    const level = document.getElementById('level-select').value;
+    let maxCount = parseInt(document.getElementById('count-input').value) || 10;
+    
+    // フィルター
+    let filtered = wordData;
+    if (level !== 'all') {
+        filtered = wordData.filter(w => w.level === level);
+    }
+    
+    if (filtered.length === 0) {
+        alert('該当するレベルの単語がありません。');
+        return;
+    }
+    
+    // シャッフル
+    filtered.sort(() => Math.random() - 0.5);
+    
+    // 出題数決定
+    if (maxCount > filtered.length) maxCount = filtered.length;
+    currentQuestions = filtered.slice(0, maxCount);
+    
+    currentIndex = 0;
+    score = 0;
+    
+    document.getElementById('home-screen').style.display = 'none';
+    document.getElementById('quiz-screen').style.display = 'block';
+    document.getElementById('result-screen').style.display = 'none';
+    
+    showQuestion();
+}
+
+function showQuestion() {
+    const q = currentQuestions[currentIndex];
+    document.getElementById('progress-text').innerText = `${currentIndex + 1} / ${currentQuestions.length} 問目`;
+    document.getElementById('question-word').innerText = q.word;
+    
+    // 4択作成 (不正解選択肢の抽出)
+    let incorrects = wordData.filter(w => w.meaning !== q.meaning).map(w => w.meaning);
+    incorrects.sort(() => Math.random() - 0.5);
+    
+    let choices = [q.meaning, incorrects[0], incorrects[1], incorrects[2]];
+    // シャッフル
+    choices.sort(() => Math.random() - 0.5);
+    
+    const container = document.getElementById('choices-container');
+    container.innerHTML = '';
+    choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.className = 'btn choice-btn';
+        btn.innerText = choice;
+        btn.onclick = () => checkAnswer(choice === q.meaning);
+        container.appendChild(btn);
+    });
+}
+
+function checkAnswer(isCorrect) {
+    if (isCorrect) {
+        score++;
+        alert('正解だニャ！🎉');
+    } else {
+        const q = currentQuestions[currentIndex];
+        alert(`残念、間違いだニャ。正解は「${q.meaning}」だニャ！🐾`);
+    }
+    
+    currentIndex++;
+    if (currentIndex < currentQuestions.length) {
+        showQuestion();
+    } else {
+        showResult();
+    }
+}
+
+function showResult() {
+    document.getElementById('quiz-screen').style.display = 'none';
+    document.getElementById('result-screen').style.display = 'block';
+    document.getElementById('score-text').innerText = `${score} / ${currentQuestions.length} 問正解`;
+    
+    const rate = score / currentQuestions.length;
+    let comment = '素晴らしいニャ！完璧だニャ！😻';
+    if (rate < 0.4) comment = 'もう少し頑張るニャ...🐾';
+    else if (rate < 0.8) comment = 'ナイスファイトだニャ！😸';
+    
+    document.getElementById('result-comment').innerText = comment;
+}
+
+function goHome() {
+    if (confirm('ホームに戻ると現在のデータが消えるけど大丈夫かニャ？')) {
+        document.getElementById('home-screen').style.display = 'block';
+        document.getElementById('quiz-screen').style.display = 'none';
+        document.getElementById('result-screen').style.display = 'none';
+    }
+}
+
+function restart() {
+    document.getElementById('home-screen').style.display = 'block';
+    document.getElementById('quiz-screen').style.display = 'none';
+    document.getElementById('result-screen').style.display = 'none';
+}
+</script>
+</body>
+</html>
